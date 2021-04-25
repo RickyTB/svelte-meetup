@@ -2,15 +2,8 @@
   import type { Meetup } from "./types";
   import MeetupGrid from "./Meetups/MeetupGrid.svelte";
   import Header from "./UI/Header.svelte";
-  import TextInput from "./UI/TextInput.svelte";
+  import EditMeetup from "./Meetups/EditMeetup.svelte";
   import Button from "./UI/Button.svelte";
-
-  let title: string = "";
-  let subtitle: string = "";
-  let address: string = "";
-  let imageUrl: string = "";
-  let email: string = "";
-  let description: string = "";
 
   let meetups: Meetup[] = [
     {
@@ -22,6 +15,7 @@
         "https://uorepicdn-ir.azureedge.net/globalassets/depts/school-of-continuing-studies/certificate-programs/coding-boot-camp/coding-bootcamp-fall-2018-photos/u-of-r-coding-academy-19-min.jpg",
       address: "27th Nerd Road, 32523 New York",
       contactEmail: "code@test.com",
+      isFavorite: false,
     },
     {
       id: "m2",
@@ -32,43 +26,48 @@
         "https://joewilcox.com/wp-content/uploads/2008/06/swim-pool.jpg",
       address: "27th Nerd Road, 32523 New York",
       contactEmail: "code@test.com",
+      isFavorite: false,
     },
   ];
 
-  function addMeetup() {
+  let editMode: "add" | "edit" | null = null;
+
+  function addMeetup(event: CustomEvent<Omit<Meetup, "id" | "isFavorite">>) {
     const newMeetup: Meetup = {
       id: Math.random().toString(),
-      title,
-      subtitle,
-      address,
-      description,
-      imageUrl,
-      contactEmail: email,
+      isFavorite: false,
+      ...event.detail,
     };
 
     meetups = [newMeetup, ...meetups];
+    editMode = null;
+  }
+
+  function toggleFavorite(event: CustomEvent<string>) {
+    const id = event.detail;
+    const updatedMeetup = { ...meetups.find((m) => m.id === id) };
+    updatedMeetup.isFavorite = !updatedMeetup.isFavorite;
+    const meetupIndex = meetups.findIndex((m) => m.id === id);
+    const updatedMeetups = [...meetups];
+    updatedMeetups[meetupIndex] = updatedMeetup;
+    meetups = updatedMeetups;
+  }
+
+  function cancelEdit() {
+    editMode = null;
   }
 </script>
 
 <Header />
 
 <main>
-  <form on:submit|preventDefault={addMeetup}>
-    <TextInput id="title" label="Title" bind:value={title} />
-    <TextInput id="subtitle" label="Subtitle" bind:value={subtitle} />
-    <TextInput id="address" label="Address" bind:value={address} />
-    <TextInput id="imageUrl" label="Image URL" bind:value={imageUrl} />
-    <TextInput id="email" label="E-Mail" bind:value={email} />
-    <TextInput
-      id="description"
-      label="Description"
-      bind:value={description}
-      rows={3}
-      controlType="textarea"
-    />
-    <Button type="submit" caption="Save" />
-  </form>
-  <MeetupGrid {meetups} />
+  <div class="meetup-controls">
+    <Button on:click={() => (editMode = "add")}>New Meetup</Button>
+  </div>
+  {#if editMode === "add"}
+    <EditMeetup on:save={addMeetup} on:cancel={cancelEdit} />
+  {/if}
+  <MeetupGrid {meetups} on:toggleFavorite={toggleFavorite} />
 </main>
 
 <style>
@@ -76,9 +75,7 @@
     margin-top: 5rem;
   }
 
-  form {
-    width: 30rem;
-    max-width: 90%;
-    margin: auto;
+  .meetup-controls {
+    margin: 1rem;
   }
 </style>

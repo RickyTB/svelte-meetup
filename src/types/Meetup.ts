@@ -6,4 +6,5 @@ export type Meetup = {
   imageUrl: string;
   address: string;
   contactEmail: string;
+  isFavorite: boolean;
 };

@@ -1,14 +1,16 @@
 <script lang="ts">
-  export let type: string;
-  export let caption: string;
-  export let href: string;
-  export let mode: "outline" | "success" | undefined;
+  export let type: string = "button";
+  export let href: string = null;
+  export let mode: "outline" | null = null;
+  export let color: string = null;
 </script>
 
 {#if href}
-  <a {href}>{caption}</a>
+  <a {href}><slot /></a>
 {:else}
-  <button {type} class={mode}>{caption}</button>
+  <button {type} class="{mode} {color}" on:click>
+    <slot />
+  </button>
 {/if}
 
 <style>

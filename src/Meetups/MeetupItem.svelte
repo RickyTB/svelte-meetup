@@ -1,16 +1,31 @@
 <script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import Button from "../UI/Button.svelte";
+  import Badge from "../UI/Badge.svelte";
+  export let id: string;
   export let title: string;
   export let subtitle: string;
   export let imageUrl: string;
   export let description: string;
   export let address: string;
   export let email: string;
+  export let isFav: boolean;
+
+  type EventMap = {
+    toggleFavorite: string;
+  };
+
+  const dispatch = createEventDispatcher<EventMap>();
 </script>
 
 <article>
   <header>
-    <h1>{title}</h1>
+    <h1>
+      {title}
+      {#if isFav}
+        <Badge>FAVORITE</Badge>
+      {/if}
+    </h1>
     <h2>{subtitle}</h2>
     <p>{address}</p>
   </header>
@@ -21,9 +36,16 @@
     <p>{description}</p>
   </div>
   <footer>
-    <Button href="mailto:{email}" caption="Contact" />
-    <Button type="button" caption="Show Details" mode="outline" />
-    <Button type="button" caption="Favorite" />
+    <Button href="mailto:{email}">Contact</Button>
+    <Button
+      type="button"
+      mode="outline"
+      color={isFav ? null : "success"}
+      on:click={() => dispatch("toggleFavorite", id)}
+    >
+      {isFav ? "Unfavorite" : "Favorite"}
+    </Button>
+    <Button type="button">Show Details</Button>
   </footer>
 </article>
 
