@@ -1,38 +1,14 @@
 import { writable } from "svelte/store";
 import type { Meetup } from "../types";
 
-const meetups = writable<Meetup[]>([
-  {
-    id: "m1",
-    title: "Coding Bootcamp",
-    subtitle: "Learn to code in 2 hours",
-    description: "In this meetup ...",
-    imageUrl:
-      "https://uorepicdn-ir.azureedge.net/globalassets/depts/school-of-continuing-studies/certificate-programs/coding-boot-camp/coding-bootcamp-fall-2018-photos/u-of-r-coding-academy-19-min.jpg",
-    address: "27th Nerd Road, 32523 New York",
-    contactEmail: "code@test.com",
-    isFavorite: false,
-  },
-  {
-    id: "m2",
-    title: "Swim Together",
-    subtitle: "Let's go for some swimming",
-    description: "We will simply swim some rounds.",
-    imageUrl: "https://joewilcox.com/wp-content/uploads/2008/06/swim-pool.jpg",
-    address: "27th Nerd Road, 32523 New York",
-    contactEmail: "code@test.com",
-    isFavorite: false,
-  },
-]);
+const meetups = writable<Meetup[]>([]);
 
 const customMeetupsStore = {
   subscribe: meetups.subscribe,
-  addMeetup: (meetupData: Omit<Meetup, "id" | "isFavorite">) => {
-    const newMeetup: Meetup = {
-      id: Math.random().toString(),
-      isFavorite: false,
-      ...meetupData,
-    };
+  setMeetups: (meetupList: Meetup[]) => {
+    meetups.set(meetupList);
+  },
+  addMeetup: (newMeetup: Meetup) => {
     meetups.update((items) => [newMeetup, ...items]);
   },
   updateMeetup: (id: string, meetupData: Omit<Meetup, "id" | "isFavorite">) => {

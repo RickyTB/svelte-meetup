@@ -3,6 +3,8 @@
   import Button from "../UI/Button.svelte";
   import Badge from "../UI/Badge.svelte";
   import meetups from "./meetups-store";
+  import { firebaseEndpoint } from "../helpers/config";
+  import LoadingSpinner from "../UI/LoadingSpinner.svelte";
 
   export let id: string;
   export let title: string;
@@ -13,8 +15,26 @@
   //export let email: string;
   export let isFav: boolean;
 
+  let isLoading = false;
+
   function toggleFavorite() {
-    meetups.toggleFavorite(id);
+    isLoading = true;
+    fetch(`${firebaseEndpoint}/meetups/${id}.json`, {
+      method: "PATCH",
+      body: JSON.stringify({ isFavorite: !isFav }),
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("An error ocurred, plase try again!");
+        }
+        meetups.toggleFavorite(id);
+        isLoading = false;
+      })
+      .catch((err) => {
+        isLoading = false;
+        console.log(err);
+      });
   }
 
   type EventMap = {
@@ -46,14 +66,18 @@
     <Button mode="outline" type="button" on:click={() => dispatch("edit", id)}
       >Edit</Button
     >
-    <Button
-      type="button"
-      mode="outline"
-      color={isFav ? null : "success"}
-      on:click={toggleFavorite}
-    >
-      {isFav ? "Unfavorite" : "Favorite"}
-    </Button>
+    {#if isLoading}
+      <span>Changing...</span>
+    {:else}
+      <Button
+        type="button"
+        mode="outline"
+        color={isFav ? null : "success"}
+        on:click={toggleFavorite}
+      >
+        {isFav ? "Unfavorite" : "Favorite"}
+      </Button>
+    {/if}
     <Button type="button" on:click={() => dispatch("showDetails", id)}
       >Show Details</Button
     >
@@ -89,13 +113,6 @@
     font-size: 1.25rem;
     margin: 0.5rem 0;
     font-family: "Roboto Slab", sans-serif;
-  }
-
-  h1.is-favorite {
-    background: #01a129;
-    color: white;
-    padding: 0 0.5rem;
-    border-radius: 5px;
   }
 
   h2 {

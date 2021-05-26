@@ -6,6 +6,7 @@
   import Modal from "../UI/Modal.svelte";
   import { isEmpty, isValidEmail } from "../helpers/validation";
   import meetups from "./meetups-store";
+  import { firebaseEndpoint } from "../helpers/config";
 
   export let id: string = null;
 
@@ -60,9 +61,38 @@
       description,
     };
     if (id) {
-      meetups.updateMeetup(id, meetupData);
+      fetch(`${firebaseEndpoint}/meetups/${id}.json`, {
+        method: "PATCH",
+        body: JSON.stringify(meetupData),
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("An error ocurred, plase try again!");
+          }
+          meetups.updateMeetup(id, meetupData);
+        })
+        .catch((err) => console.log(err));
     } else {
-      meetups.addMeetup(meetupData);
+      fetch(`${firebaseEndpoint}/meetups.json`, {
+        method: "POST",
+        body: JSON.stringify({ ...meetupData, isFavorite: false }),
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("An error ocurred, plase try again!");
+          }
+          return res.json();
+        })
+        .then((data) => {
+          meetups.addMeetup({
+            ...meetupData,
+            isFavorite: false,
+            id: data.name,
+          });
+        })
+        .catch((err) => console.log(err));
     }
     dispatch("save");
   }
@@ -72,7 +102,16 @@
   }
 
   function deleteMeetup() {
-    meetups.removeMeetup(id);
+    fetch(`${firebaseEndpoint}/meetups/${id}.json`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("An error ocurred, plase try again!");
+        }
+        meetups.removeMeetup(id);
+      })
+      .catch((err) => console.log(err));
     dispatch("save");
   }
 </script>
